@@ -7,7 +7,7 @@ import AdBanner from './AdBanner';
 import { shouldShowAds } from '../config/monetization';
 import './Feed.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://nexcore-backend.onrender.com/api';
 
 function Feed({ user }) {
   const [posts, setPosts] = useState([]);

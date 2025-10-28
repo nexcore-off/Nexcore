@@ -7,7 +7,7 @@ import EmojiPicker from './EmojiPicker';
 import ReactionPicker from './ReactionPicker';
 import './Chat.css';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://nexcore-backend.onrender.com';
 
 function Chat({ user, channel, onNewMessage }) {
   const [socket, setSocket] = useState(null);

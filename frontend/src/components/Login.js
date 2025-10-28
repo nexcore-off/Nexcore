@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Lock, Mail, User, LogIn, UserPlus } from 'lucide-react';
 import './Login.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://nexcore-backend.onrender.com/api';
 
 function Login({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);

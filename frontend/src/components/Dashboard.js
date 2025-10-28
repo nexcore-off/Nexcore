@@ -8,7 +8,7 @@ import Feed from './Feed';
 import Pricing from './Pricing';
 import './Dashboard.css';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://nexcore-backend.onrender.com/api';
 
 function Dashboard({ user, onLogout }) {
   const { isDarkMode, toggleTheme } = useTheme();
