@@ -124,6 +124,7 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async ({ channel, content, message, userId, encrypted, imageData }) => {
     try {
+      console.log('📨 Envoi message, imageData présent:', !!imageData);
       const newMessage = new Message({
         content: content || message,
         sender: userId,
@@ -132,8 +133,10 @@ io.on('connection', (socket) => {
         imageData: imageData || null
       });
       await newMessage.save();
+      console.log('💾 Message sauvegardé, imageData dans DB:', !!newMessage.imageData);
       
       const populatedMessage = await Message.findById(newMessage._id).populate('sender', 'username avatar');
+      console.log('📤 Message populé envoyé, imageData:', !!populatedMessage.imageData);
       io.to(channel).emit('newMessage', populatedMessage);
     } catch (error) {
       console.error('Erreur envoi message:', error);

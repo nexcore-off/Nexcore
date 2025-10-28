@@ -32,6 +32,10 @@ function Chat({ user, channel, onNewMessage }) {
     newSocket.emit('joinChannel', channel);
 
     newSocket.on('newMessage', (message) => {
+      console.log('🆕 Nouveau message reçu:', message);
+      if (message.imageData) {
+        console.log('📸 Message contient une image!');
+      }
       setMessages(prev => [...prev, message]);
       // Notifier le Dashboard d'un nouveau message
       if (onNewMessage && message.channel) {
@@ -63,6 +67,11 @@ function Chat({ user, channel, onNewMessage }) {
   const loadMessages = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/channels/${channel}/messages`);
+      console.log('📥 Messages chargés:', response.data.length);
+      console.log('📸 Messages avec images:', response.data.filter(m => m.imageData).length);
+      if (response.data.some(m => m.imageData)) {
+        console.log('🖼️ Exemple de message avec image:', response.data.find(m => m.imageData));
+      }
       setMessages(response.data);
     } catch (error) {
       console.error('Erreur chargement messages:', error);

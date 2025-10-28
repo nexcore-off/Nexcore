@@ -63,9 +63,11 @@ router.get('/:channelName/messages', async (req, res) => {
     
     const messages = await Message.find({ channel: req.params.channelName })
       .populate('sender', 'username avatar')
+      .select('+imageData') // Explicitement inclure imageData
       .sort({ timestamp: -1 })
       .limit(parseInt(limit));
 
+    console.log('Messages récupérés:', messages.length, 'avec images:', messages.filter(m => m.imageData).length);
     res.json(messages.reverse());
   } catch (error) {
     res.status(500).json({ message: 'Erreur récupération messages', error: error.message });
