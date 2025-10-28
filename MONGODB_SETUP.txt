@@ -1,0 +1,20 @@
+🌐 CONFIGURATION MONGODB ATLAS
+================================
+
+Une fois que vous avez votre URI MongoDB Atlas, suivez ces étapes :
+
+1. L'URI ressemble à ceci :
+   mongodb+srv://socialhub_admin:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+
+2. Remplacez <password> par votre vrai mot de passe
+
+3. Exemple d'URI complet :
+   mongodb+srv://socialhub_admin:MonMotDePasse123@cluster0.abc123.mongodb.net/?retryWrites=true&w=majority
+
+4. Collez l'URI ci-dessous :
+   
+   VOTRE_URI_ICI
+
+
+================================
+Quand vous avez l'URI, dites-moi et je vais configurer automatiquement !
