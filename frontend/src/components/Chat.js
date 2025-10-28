@@ -110,9 +110,13 @@ function Chat({ user, channel, onNewMessage }) {
 
     // Compress image if present
     if (selectedImage && imagePreview) {
+      console.log('🖼️ Compression de l\'image...');
       imageData = await compressImage(imagePreview);
+      console.log('✅ Image compressée, taille:', (imageData.length / 1024).toFixed(2), 'KB');
     }
 
+    console.log('📤 Envoi message avec imageData:', !!imageData);
+    
     socket.emit('sendMessage', {
       channel: channel,
       content: messageContent,
@@ -187,7 +191,7 @@ function Chat({ user, channel, onNewMessage }) {
     }
   };
 
-  const compressImage = (base64Image, maxWidth = 800) => {
+  const compressImage = (base64Image, maxWidth = 600) => {
     return new Promise((resolve) => {
       const img = document.createElement('img');
       img.src = base64Image;
@@ -196,6 +200,7 @@ function Chat({ user, channel, onNewMessage }) {
         let width = img.width;
         let height = img.height;
 
+        // Réduire la taille
         if (width > maxWidth) {
           height = (height * maxWidth) / width;
           width = maxWidth;
@@ -206,7 +211,8 @@ function Chat({ user, channel, onNewMessage }) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         
-        resolve(canvas.toDataURL('image/jpeg', 0.8));
+        // Compression plus forte
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
       };
     });
   };

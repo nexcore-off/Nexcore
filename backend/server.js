@@ -15,7 +15,8 @@ const io = socketIo(server, {
     ],
     methods: ["GET", "POST"],
     credentials: true
-  }
+  },
+  maxHttpBufferSize: 10e6 // 10MB max pour les images
 });
 
 // Middleware - CORS Configuration
