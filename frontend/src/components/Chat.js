@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
-import { Send, Lock, Unlock, Smile, SmilePlus } from 'lucide-react';
+import { Send, Lock, Unlock, Smile, SmilePlus, Image, X } from 'lucide-react';
 import EmojiPicker from './EmojiPicker';
 import ReactionPicker from './ReactionPicker';
 import './Chat.css';
@@ -18,7 +18,11 @@ function Chat({ user, channel, onNewMessage }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [hoveredMessage, setHoveredMessage] = useState(null);
   const [showReactionPicker, setShowReactionPicker] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const newSocket = io(API_URL);
@@ -84,20 +88,33 @@ function Chat({ user, channel, onNewMessage }) {
     }
   };
 
-  const handleSend = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !socket) return;
+    if ((newMessage.trim() === '' && !selectedImage) || !socket) return;
 
-    const messageToSend = isEncrypted ? encryptMessage(newMessage) : newMessage;
+    let messageContent = newMessage || ' ';
+    let imageData = null;
+
+    if (isEncrypted) {
+      messageContent = CryptoJS.AES.encrypt(newMessage, 'secret-key').toString();
+    }
+
+    // Compress image if present
+    if (selectedImage && imagePreview) {
+      imageData = await compressImage(imagePreview);
+    }
 
     socket.emit('sendMessage', {
       channel: channel,
-      message: messageToSend,
+      content: messageContent,
+      username: user.username,
       userId: user.id,
-      encrypted: isEncrypted
+      encrypted: isEncrypted,
+      imageData: imageData
     });
 
     setNewMessage('');
+    removeImage();
   };
 
   const handleTyping = () => {
@@ -132,6 +149,57 @@ function Chat({ user, channel, onNewMessage }) {
     } catch (error) {
       console.error('Erreur réaction:', error);
     }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB max
+        alert('Image trop grande (max 5MB)');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const compressImage = (base64Image, maxWidth = 800) => {
+    return new Promise((resolve) => {
+      const img = document.createElement('img');
+      img.src = base64Image;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+    });
   };
 
   return (
@@ -188,6 +256,18 @@ function Chat({ user, channel, onNewMessage }) {
                 {msg.encrypted ? decryptMessage(msg.content) : msg.content}
               </div>
 
+              {/* Afficher l'image si présente */}
+              {msg.imageData && (
+                <div className="message-image">
+                  <img 
+                    src={msg.imageData} 
+                    alt="Image partagée"
+                    onClick={() => setShowImageModal(msg.imageData)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </div>
+              )}
+
               {/* Afficher les réactions */}
               {msg.reactions && msg.reactions.length > 0 && (
                 <div className="message-reactions">
@@ -227,25 +307,57 @@ function Chat({ user, channel, onNewMessage }) {
         <div ref={messagesEndRef} />
       </div>
 
-      <form className="message-input-container" onSubmit={handleSend}>
-        <button 
-          type="button" 
-          className="emoji-btn-trigger"
-          onClick={() => setShowEmojiPicker(true)}
-        >
-          <Smile size={22} />
-        </button>
-        <input
-          type="text"
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyPress={handleTyping}
-          placeholder={`Message dans #${channel}...`}
-          className="message-input"
-        />
-        <button type="submit" className="send-btn" disabled={!newMessage.trim()}>
-          <Send size={20} />
-        </button>
+      <form className="message-input-container" onSubmit={handleSendMessage}>
+        {/* Preview de l'image sélectionnée */}
+        {imagePreview && (
+          <div className="image-preview-container">
+            <img src={imagePreview} alt="Preview" className="image-preview" />
+            <button 
+              type="button" 
+              className="remove-image-btn"
+              onClick={removeImage}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
+        <div className="input-wrapper">
+          <button 
+            type="button" 
+            className="emoji-btn-trigger"
+            onClick={() => setShowEmojiPicker(true)}
+          >
+            <Smile size={22} />
+          </button>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
+          <button 
+            type="button" 
+            className="image-btn-trigger"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Image size={22} />
+          </button>
+
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleTyping}
+            placeholder={`Message dans #${channel}...`}
+            className="message-input"
+          />
+          <button type="submit" className="send-btn" disabled={!newMessage.trim() && !selectedImage}>
+            <Send size={20} />
+          </button>
+        </div>
       </form>
 
       {showEmojiPicker && (
@@ -253,6 +365,18 @@ function Chat({ user, channel, onNewMessage }) {
           onEmojiSelect={handleEmojiSelect}
           onClose={() => setShowEmojiPicker(false)}
         />
+      )}
+
+      {/* Modal pour afficher l'image en grand */}
+      {showImageModal && (
+        <div className="image-modal-overlay" onClick={() => setShowImageModal(null)}>
+          <div className="image-modal-content">
+            <button className="close-modal-btn" onClick={() => setShowImageModal(null)}>
+              <X size={24} />
+            </button>
+            <img src={showImageModal} alt="Image agrandie" />
+          </div>
+        </div>
       )}
     </div>
   );

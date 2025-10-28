@@ -122,13 +122,14 @@ io.on('connection', (socket) => {
     console.log(`📢 Utilisateur rejoint le canal: ${channel}`);
   });
 
-  socket.on('sendMessage', async ({ channel, message, userId, encrypted }) => {
+  socket.on('sendMessage', async ({ channel, content, message, userId, encrypted, imageData }) => {
     try {
       const newMessage = new Message({
-        content: message,
+        content: content || message,
         sender: userId,
         channel: channel,
-        encrypted: encrypted
+        encrypted: encrypted,
+        imageData: imageData || null
       });
       await newMessage.save();
       

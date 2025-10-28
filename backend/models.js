@@ -15,15 +15,17 @@ const UserSchema = new mongoose.Schema({
 
 // Message Schema
 const MessageSchema = new mongoose.Schema({
-  content: { type: String, required: true },
-  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   channel: { type: String, required: true },
+  sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  content: { type: String, required: true },
   encrypted: { type: Boolean, default: false },
+  timestamp: { type: Date, default: Date.now },
   reactions: [{
-    emoji: { type: String, required: true },
+    emoji: String,
     users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   }],
-  timestamp: { type: Date, default: Date.now }
+  imageUrl: { type: String, default: null },
+  imageData: { type: String, default: null } // Base64 encoded image for small images
 });
 
 // Post Schema
