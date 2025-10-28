@@ -97,11 +97,13 @@ const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const channelRoutes = require('./routes/channels');
 const messageRoutes = require('./routes/messages');
+const searchRoutes = require('./routes/search');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/search', searchRoutes);
 
 // Socket.IO - Communication en temps réel (comme Discord)
 const activeUsers = new Map();

@@ -185,6 +185,21 @@
   background: var(--main-bg);
   overflow-y: auto;
   transition: background 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-header {
+  padding: 20px 24px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 /* Premium Button */

@@ -6,6 +6,7 @@ import { isPremiumEnabled } from '../config/monetization';
 import Chat from './Chat';
 import Feed from './Feed';
 import Pricing from './Pricing';
+import SearchBar from './SearchBar';
 import './Dashboard.css';
 
 const API_URL = 'https://nexcore-backend.onrender.com/api';
@@ -80,6 +81,20 @@ function Dashboard({ user, onLogout }) {
 
   // Calculer le total de messages non lus
   const totalUnread = Object.values(unreadMessages).reduce((sum, count) => sum + count, 0);
+
+  const handleSearchResult = (type, item) => {
+    if (type === 'message') {
+      // Aller au canal du message
+      setCurrentChannel(item.channel);
+      setActiveTab('chat');
+    } else if (type === 'post') {
+      // Aller au feed
+      setActiveTab('feed');
+    } else if (type === 'user') {
+      // Pour l'instant, juste afficher une notification
+      alert(`Profil de ${item.username} - Fonctionnalité à venir !`);
+    }
+  };
 
   return (
     <div className="dashboard">
@@ -173,6 +188,10 @@ function Dashboard({ user, onLogout }) {
       </div>
 
       <div className="main-content">
+        <div className="main-header">
+          <SearchBar onResultClick={handleSearchResult} />
+        </div>
+
         {activeTab === 'chat' && (
           <Chat 
             user={user} 
