@@ -61,7 +61,13 @@ const MessageSchema = new mongoose.Schema({
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   channel: { type: String, required: true },
   encrypted: { type: Boolean, default: false },
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
+  reactions: [{
+    emoji: String,
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+  }],
+  imageUrl: { type: String, default: null },
+  imageData: { type: String, default: null } // Base64 encoded image
 });
 
 const PostSchema = new mongoose.Schema({
@@ -130,15 +136,35 @@ io.on('connection', (socket) => {
         console.log('📏 Taille imageData:', (imageData.length / 1024).toFixed(2), 'KB');
       }
       
-      const newMessage = new Message({
+      const messageData = {
         content: content || message,
         sender: userId,
         channel: channel,
-        encrypted: encrypted,
-        imageData: imageData || null
-      });
-      await newMessage.save();
-      console.log('💾 Message sauvegardé, imageData dans DB:', !!newMessage.imageData);
+        encrypted: encrypted
+      };
+      
+      // Ajouter imageData seulement si présent
+      if (imageData) {
+        messageData.imageData = imageData;
+        console.log('📝 imageData ajouté au document avant save');
+      }
+      
+      const newMessage = new Message(messageData);
+      console.log('🔍 Avant save, imageData dans newMessage:', !!newMessage.imageData);
+      
+      let savedMessage;
+      try {
+        savedMessage = await newMessage.save();
+        console.log('💾 Message sauvegardé, imageData dans savedMessage:', !!savedMessage.imageData);
+        console.log('🔍 Après save, imageData dans newMessage:', !!newMessage.imageData);
+        
+        // Vérifier directement dans la DB
+        const checkDB = await Message.findById(savedMessage._id);
+        console.log('🔍 Vérification DB directe, imageData présent:', !!checkDB.imageData);
+      } catch (saveError) {
+        console.error('❌ Erreur lors du save:', saveError);
+        throw saveError;
+      }
       
       const populatedMessage = await Message.findById(newMessage._id)
         .populate('sender', 'username avatar')
