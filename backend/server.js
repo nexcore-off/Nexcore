@@ -142,11 +142,17 @@ io.on('connection', (socket) => {
       
       const populatedMessage = await Message.findById(newMessage._id)
         .populate('sender', 'username avatar')
-        .select('+imageData'); // Explicitement inclure imageData
+        .lean(); // Convertir en objet plain JavaScript
+      
+      // S'assurer que imageData est présent
+      if (!populatedMessage.imageData && newMessage.imageData) {
+        populatedMessage.imageData = newMessage.imageData;
+      }
       
       console.log('📤 Message populé envoyé, imageData:', !!populatedMessage.imageData);
       if (populatedMessage.imageData) {
         console.log('✅ ImageData bien présent dans le message envoyé!');
+        console.log('📏 Taille imageData envoyé:', (populatedMessage.imageData.length / 1024).toFixed(2), 'KB');
       } else {
         console.log('❌ ImageData MANQUANT dans le message envoyé!');
       }
