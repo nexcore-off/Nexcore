@@ -126,6 +126,10 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async ({ channel, content, message, userId, encrypted, imageData }) => {
     try {
       console.log('📨 Envoi message, imageData présent:', !!imageData);
+      if (imageData) {
+        console.log('📏 Taille imageData:', (imageData.length / 1024).toFixed(2), 'KB');
+      }
+      
       const newMessage = new Message({
         content: content || message,
         sender: userId,
@@ -136,8 +140,17 @@ io.on('connection', (socket) => {
       await newMessage.save();
       console.log('💾 Message sauvegardé, imageData dans DB:', !!newMessage.imageData);
       
-      const populatedMessage = await Message.findById(newMessage._id).populate('sender', 'username avatar');
+      const populatedMessage = await Message.findById(newMessage._id)
+        .populate('sender', 'username avatar')
+        .select('+imageData'); // Explicitement inclure imageData
+      
       console.log('📤 Message populé envoyé, imageData:', !!populatedMessage.imageData);
+      if (populatedMessage.imageData) {
+        console.log('✅ ImageData bien présent dans le message envoyé!');
+      } else {
+        console.log('❌ ImageData MANQUANT dans le message envoyé!');
+      }
+      
       io.to(channel).emit('newMessage', populatedMessage);
     } catch (error) {
       console.error('Erreur envoi message:', error);

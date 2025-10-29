@@ -25,7 +25,7 @@ const MessageSchema = new mongoose.Schema({
     users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   }],
   imageUrl: { type: String, default: null },
-  imageData: { type: String, default: null } // Base64 encoded image for small images
+  imageData: { type: String, default: null, select: true } // Base64 encoded image - toujours inclus
 });
 
 // Post Schema
